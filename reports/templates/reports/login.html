@@ -1,18 +1,43 @@
 <!-- templates/login.html -->
+{% load static %}
+
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Login</title>
-    <!-- Add your CSS and other header elements here (e.g., Bootstrap, custom styles) -->
-</head>
-<body>
-    <div class="container">
-        <h2>Login</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form }}
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
+  </head>
+  <body>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <div class="row justify-content-center">
+      <div class="col-md-3 col-sm-8 col-xm-12">
+        <div class="container mt-5">
+          <div class="card">
+            <img
+              src="{% static 'images/logo.png' %}"
+              class="card-img-top"
+              alt="..."
+            />
+            <div class="card-body">
+              <form method="post">
+                {% csrf_token %} {% for field in form %}
+                <div class="mb-3 form-group">
+                  <label for="{{ field.id_for_label }}" class="form-label"
+                    >{{ field.label }}</label
+                  >
+                  {{ field }}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-custom">
+                  Iniciar sessão
+                </button>
+                <p class="mt-2"><a class="link-opacity-75" href="#">Criar conta</a></p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-</body>
+  </body>
 </html>

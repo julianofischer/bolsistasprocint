@@ -49,9 +49,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
-    scholarship = models.ForeignKey(Scholarship, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
-    eixo = models.ForeignKey(Eixo, on_delete=models.CASCADE)
+    scholarship = models.ForeignKey(
+        Scholarship, on_delete=models.CASCADE, null=True
+    )
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True)
+    eixo = models.ForeignKey(Eixo, on_delete=models.CASCADE, null=True)
     ch = models.IntegerField(default=0)
 
     objects = CustomUserManager()

@@ -5,5 +5,4 @@ from reports import views
 
 urlpatterns = [
     path("meusrelatorios", ReportListView.as_view(), name="report-list"),
-    path("login", views.login_view, name="login"),
 ]
