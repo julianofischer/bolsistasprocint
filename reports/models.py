@@ -68,7 +68,7 @@ class Report(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     ref_month = models.DateField()
     user = models.ForeignKey(
-        "auth.User", related_name="reports", on_delete=models.CASCADE
+        "reports.CustomUser", related_name="reports", on_delete=models.CASCADE
     )
 
     @property
