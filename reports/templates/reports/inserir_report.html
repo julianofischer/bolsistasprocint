@@ -1,0 +1,87 @@
+<!-- templates/login.html -->
+{% extends 'reports/base.html' %} 
+{% block title %} Inserir Relatório {% endblock %}
+{% block content %}
+<div class="container mt-4 card">
+  <h1>Registro de Atividades</h1>
+  <hr />
+
+  <!-- Form to enter data -->
+  <form>
+    <div class="row">
+    <div class="col">
+      <!-- Nome bolsita -->
+      <div class="form-group">
+        <label for="nomeBolsita">Bolsita:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="nomeBolsita"
+          placeholder="Digite o nome da bolsita"
+        />
+      </div>
+
+      <!-- Eixo -->
+      <div class="form-group">
+        <label for="eixo">Eixo:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="eixo"
+          placeholder="Digite o eixo"
+        />
+      </div>
+
+      <!-- Bolsa -->
+      <div class="form-group">
+        <label for="bolsa">Bolsa:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="bolsa"
+          placeholder="Digite a bolsa"
+        />
+      </div>
+    </div>
+
+    <div class="col">
+      <!-- ch -->
+      <div class="form-group">
+        <label for="ch">ch:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="ch"
+          placeholder="Digite o ch"
+        />
+      </div>
+
+      <!-- Função -->
+      <div class="form-group">
+        <label for="funcao">Função:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="funcao"
+          placeholder="Digite a função"
+        />
+      </div>
+
+      <!-- Competência -->
+      <div class="form-group">
+        <label for="competencia">Competência:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="competencia"
+          placeholder="Digite a competência"
+        />
+      </div>
+    </div>
+    </div>
+
+    <!-- Insert button -->
+    <button type="button" class="btn btn-primary mt-3">Inserir</button>
+  </form>
+</div>
+{% endblock %}

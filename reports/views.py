@@ -24,3 +24,12 @@ def login_view(request):
         form = LoginForm()
 
     return render(request, "reports/login.html", {"form": form})
+
+
+def inserir_relatorio_view(request):
+    user = request.user
+    context = {
+        "user": user,
+    }
+    print(user)
+    return render(request, "reports/inserir_report.html", context)
