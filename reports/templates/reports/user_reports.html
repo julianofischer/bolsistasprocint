@@ -1,24 +1,25 @@
 {% extends 'reports/base.html' %}
 {% block title %}Inserir Relatório{% endblock %}
 {% block content %}
-    <div class="container">
-        <h1>User Reports</h1>
+    <div class="container d-flex flex-column align-items-center min-vh-100">
+        <h1 class="mt-4">Relat'orios</h1>
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>Reference Month</th>
-                    <th>Total Hours</th>
-                    <th>Actions</th>
+                    <th>Mes de Referencia</th>
+                    <th>Total de Horas</th>
+                    <th>Acoes</th>
                 </tr>
             </thead>
             <tbody>
                 {% for report in reports %}
                     <tr>
-                        <td>{{ report.ref_month }}</td>
+                        <td>{{ report.ref_month|date:"F/Y" }}</td>
                         <td>{{ report.total_hours }}</td>
                         <td>
-                            <a href="{% url 'report-entries' report.id %}" class="btn btn-primary">Open</a>
-                            <a href="{% url 'report-entries' report.id %}" class="btn btn-primary">Open</a>
+                            <a href="{% url 'report-entries' report.id %}" class="btn btn-primary">Abrir</a>
+                            <a href="{% url 'report-entries' report.id %}" class="btn btn-secondary">Imprimir</a>
+                            <a href="{% url 'report-entries' report.id %}" class="btn btn-success">Submeter</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -26,3 +27,4 @@
         </table>
     </div>
 {% endblock content %}
+    

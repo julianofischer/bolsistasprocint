@@ -1,0 +1,19 @@
+{% extends 'reports/base.html' %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center min-vh-100">
+    <div class="card text-center">
+        <div class="card-body">
+            <h2 class="card-title">Confirme a Exclus~ao</h2>
+            <p class="card-text">Voce tem certeza que deseja excluir essa entrada?</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="btn-group" role="group">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <a href="{% url 'report-entries' report_id=object.report.id %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
