@@ -9,5 +9,5 @@ urlpatterns = [
         "inserir-relatorio/", inserir_relatorio_view, name="inserir-relatorio"
     ),
     path("admin/", admin.site.urls),
-    path("api/v1", include("reports.urls")),
+    path("relatorios/", include("reports.urls")),
 ]

@@ -7,6 +7,7 @@ from django.db import models
 from django.utils import timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from datetime import datetime, timedelta
 
 
 class CustomUserManager(BaseUserManager):
@@ -75,7 +76,13 @@ class Report(models.Model):
 
     @property
     def total_hours(self):
-        return sum([entry.hours for entry in self.entries.all()])
+        return sum([entry.hours for entry in self.entries.all()], timedelta(0))
+
+    def formatted_ref_month(self):
+        return self.ref_month.strftime('%m-%Y')
+    
+    def __str__(self) -> str:
+        return f"{self.user} - {self.formatted_ref_month()} ({self.total_hours})"
 
 
 class ReportEntry(models.Model):
@@ -89,7 +96,17 @@ class ReportEntry(models.Model):
 
     @property
     def hours(self):
-        return self.end_hour.hour - self.init_hour.hour
+        # Convert TimeField values to datetime.time objects
+        init_time = datetime.strptime(str(self.init_hour), '%H:%M:%S').time()
+        end_time = datetime.strptime(str(self.end_hour), '%H:%M:%S').time()
+
+        # Calculate the time difference as a timedelta object
+        time_difference = timedelta(
+            hours=end_time.hour - init_time.hour,
+            minutes=end_time.minute - init_time.minute,
+            seconds=end_time.second - init_time.second
+        )
+        return time_difference
 
 
 class ReportSubmission(models.Model):

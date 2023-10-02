@@ -1,5 +1,6 @@
 # forms.py
 from django import forms
+from .models import ReportEntry
 
 
 class LoginForm(forms.Form):
@@ -9,3 +10,8 @@ class LoginForm(forms.Form):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={"class": "form-control"}),
     )
+
+class ReportEntryForm(forms.ModelForm):
+    class Meta:
+        model = ReportEntry
+        fields = ['description', 'date', 'init_hour', 'end_hour']

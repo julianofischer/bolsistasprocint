@@ -1,0 +1,56 @@
+{% extends 'reports/base.html' %}
+{% load reports_custom_tags %}
+{% block content %}
+<div class="container">
+    <h1>Report Entries</h1>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Start Hour</th>
+                <th>End Hour</th>
+                <th>Hours</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.description }}</td>
+                <td>{{ entry.date }}</td>
+                <td>{{ entry.init_hour }}</td>
+                <td>{{ entry.end_hour }}</td>
+                <td>{{ entry.hours }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<div class="container mt-4">
+    <h1>Create Report Entry</h1>
+    
+    <form method="post" action="{% url 'create_report_entry' report_id=report_id %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <input type="text" class="form-control" id="description" name="description" required value="{{ last_entry.description }}">
+        </div>
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" class="form-control" id="date" name="date" required value="{{ last_entry.date|add_days:1|date:'Y-m-d' }}">
+        </div>
+        <div class="form-group">
+            <label for="init_hour">Start Hour:</label>
+            <input type="time" class="form-control" id="init_hour" name="init_hour" required value="{{ last_entry.init_hour }}">
+        </div>
+        <div class="form-group">
+            <label for="end_hour">End Hour:</label>
+            <input type="time" class="form-control" id="end_hour" name="end_hour" required value="{{ last_entry.end_hour }}">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}
