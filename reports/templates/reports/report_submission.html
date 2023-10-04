@@ -2,16 +2,16 @@
 
 {% block content %}
 <div class="container">
-  <h2>Submit a Report</h2>
+  <h2>Entregar Relatório</h2>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     
-    <div class="form-group">
+    <div class="form-group mt-3">
       {{ form.pdf_file.label_tag }}
       {{ form.pdf_file }}
     </div>
 
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary mt-3">Submit</button>
   </form>
 </div>
 {% endblock %}

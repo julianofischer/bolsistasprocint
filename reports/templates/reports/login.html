@@ -6,11 +6,11 @@
       <div class="col-md-3 col-sm-8 col-xm-12">
         <div class="container mt-5">
           <div class="card">
-            <img
+            <!-- <img
               src="{% static 'images/logo.png' %}"
               class="card-img-top"
               alt="..."
-            />
+            /> --> 
             <div class="card-body">
               <form method="post">
                 {% csrf_token %} {% for field in form %}
@@ -21,7 +21,7 @@
                   {{ field }}
                 </div>
                 {% endfor %}
-                <button type="submit" class="btn btn-custom">
+                <button type="submit" class="btn btn-primary">
                   Iniciar sessão
                 </button>
                 <p class="mt-2"><a class="link-opacity-75" href="#">Criar conta</a></p>

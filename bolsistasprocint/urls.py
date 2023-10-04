@@ -1,10 +1,15 @@
 # myproject/urls.py
 from django.contrib import admin
+from django.contrib.auth.views import LogoutView
 from django.urls import path, include
-from reports.views import login_view, inserir_relatorio_view
+from django.views.generic import RedirectView
+from reports.views import inserir_relatorio_view, CustomLoginView
+
 
 urlpatterns = [
-    path("login/", login_view, name="login"),
+    path("", RedirectView.as_view(url="/relatorios/")),
+    path("logout/", LogoutView.as_view(), name="logout"),
+    path("login/", CustomLoginView.as_view(), name="login"),
     path(
         "inserir-relatorio/", inserir_relatorio_view, name="inserir-relatorio"
     ),

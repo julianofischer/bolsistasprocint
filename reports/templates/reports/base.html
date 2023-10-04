@@ -11,6 +11,21 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container">
+              <a class="navbar-brand" href="/">Bolsistas PROCINT</a>
+              <ul class="navbar-nav ml-auto">
+                  {% if user.is_authenticated %}
+                      <li class="nav-item">
+                          <a class="nav-link" href="{% url 'logout' %}?next=/login">Logout</a>
+                      </li>
+                  {% endif %}
+              </ul>
+          </div>
+      </nav>
+  </header>
+
     {% block content %}{% endblock %}
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
