@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Report, ReportEntry
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy
 
 def login_view(request):
@@ -125,3 +125,36 @@ class ReportEntryDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView)
     def get_success_url(self):
         # Define the URL where you want to redirect after a successful form submission
         return reverse_lazy('report-entries', kwargs={'report_id': self.kwargs['report_id']})
+
+
+from .pdf import generate_pdf
+from django.http import HttpResponse
+class PDFView(View):
+    def get(self, request, *args, **kwargs):
+        header_data = {}
+        report_id = self.kwargs['report_id']
+        report = Report.objects.get(id=report_id)
+
+        header_data["bolsista"] = report.user.name
+        header_data["funcao"] = report.user.role
+        header_data["periodo"] = report.formatted_ref_month()
+        header_data["telefone_institucional"] = ""
+        header_data["email"] = report.user.email
+
+        row_data = []
+        entries = ReportEntry.objects.filter(report__id=report_id)
+        for entry in entries:
+            row_data.append({
+                "dia": entry.date.day,
+                "atividade": entry.description,
+                "inicio": entry.init_hour,
+                "fim": entry.end_hour,
+                "ch": entry.hours
+            })
+        
+        pdf_file = generate_pdf(header_data, row_data)
+        response = HttpResponse(content_type='application/pdf')
+        filename = f"{report.user.name} - {report.ref_month.strftime('%B')} - {report.ref_month.year}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.write(pdf_file)
+        return response

@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import Report, ReportEntry, ReportSubmission
+from .models import Report, ReportEntry, ReportSubmission, CustomUser
 
 class RefMonthYearFilter(admin.SimpleListFilter):
     title = 'Ano'
@@ -42,6 +42,10 @@ class ReportEntryAdmin(admin.ModelAdmin):
     list_display = ("report", "description", "date", "init_hour", "end_hour", "hours")
     list_filter = ("report", "date")
 
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ("name", "email", "scholarship", "role", "eixo", "ch")
+
 admin.site.register(Report, ReportAdmin)
 admin.site.register(ReportEntry, ReportEntryAdmin)
 admin.site.register(ReportSubmission)
+admin.site.register(CustomUser, CustomUserAdmin)

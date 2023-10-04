@@ -35,13 +35,22 @@ class CustomUserManager(BaseUserManager):
 class Scholarship(models.Model):
     name = models.CharField(max_length=30)
 
+    def __str__(self):
+        return self.name
+
 
 class Role(models.Model):
     name = models.CharField(max_length=30)
 
+    def __str__(self):
+        return self.name
+
 
 class Eixo(models.Model):
     name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
