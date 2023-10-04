@@ -86,6 +86,18 @@ class Report(models.Model):
     @property
     def total_hours(self):
         return sum([entry.hours for entry in self.entries.all()], timedelta(0))
+    
+    @property
+    def state(self):
+        if self.submission.exists():
+            return self.submission.last().status
+        return "Aberto"
+    
+    @property
+    def last_submission(self):
+        if self.submission.exists():
+            return self.submission.last()
+        return None
 
     def formatted_ref_month(self):
         return self.ref_month.strftime('%m-%Y')
@@ -120,9 +132,9 @@ class ReportEntry(models.Model):
 
 class ReportSubmission(models.Model):
     class ReportStatus(models.TextChoices):
-        PENDING = "pendente"
-        APPROVED = "aprovado"
-        REJECTED = "rejeitado"
+        PENDING = "Em analise"
+        APPROVED = "Aprovado"
+        REJECTED = "Rejeitado"
 
     report = models.ForeignKey(
         Report, on_delete=models.CASCADE, related_name="submission"
@@ -135,7 +147,7 @@ class ReportSubmission(models.Model):
     )
     last_status_change = models.DateTimeField(auto_now=True)
     reviewer = models.ForeignKey(
-        CustomUser, related_name="submissions", on_delete=models.CASCADE
+        CustomUser, related_name="submissions", on_delete=models.SET_NULL, null=True
     )
     pdf_file = models.FileField(upload_to="reports")
     reason = models.CharField(max_length=1024, blank=True)

@@ -1,0 +1,17 @@
+{% extends 'reports/base.html' %}
+
+{% block content %}
+<div class="container">
+  <h2>Submit a Report</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="form-group">
+      {{ form.pdf_file.label_tag }}
+      {{ form.pdf_file }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
+{% endblock %}

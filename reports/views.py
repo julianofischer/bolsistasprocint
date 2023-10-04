@@ -2,6 +2,7 @@ from typing import Any, Dict
 from django.db import models
 from django.db.models.query import QuerySet
 from django.shortcuts import render
+from django.contrib import messages
 
 # Create your views here.
 # views.py
@@ -12,8 +13,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Report, ReportEntry
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
-from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View, DetailView
+from django.urls import reverse_lazy, reverse
 
 def login_view(request):
     if request.method == "POST":
@@ -60,6 +61,19 @@ class ReportEntriesListView(LoginRequiredMixin, ListView):
     model = ReportEntry
     template_name = 'reports/report_entries.html'
     context_object_name = 'entries'
+
+    def get(self, request, *args: str, **kwargs: Any):
+        report_id = self.kwargs.get('report_id')
+        existing_submissions = ReportSubmission.objects.filter(
+            report_id=report_id,
+            status__in=[ReportSubmission.ReportStatus.PENDING, ReportSubmission.ReportStatus.APPROVED]
+        )
+        
+        if existing_submissions.exists():
+            messages.error(request, "Nao e possivel abrir relatorio enviado para analise.")
+            return redirect(reverse('user-reports'))
+        else:
+            return super().get(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Any]:
         report_id = self.kwargs['report_id']
@@ -128,9 +142,19 @@ class ReportEntryDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView)
 
 
 from .pdf import generate_pdf
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 class PDFView(View):
     def get(self, request, *args, **kwargs):
+        report_id = self.kwargs.get('report_id')
+        existing_submissions = ReportSubmission.objects.filter(
+            report_id=report_id,
+            status__in=[ReportSubmission.ReportStatus.PENDING, ReportSubmission.ReportStatus.APPROVED]
+        )
+        
+        if existing_submissions.exists():
+            messages.error(request, "Nao e possivel imprimir relatorio enviado para analise.")
+            return redirect(reverse('user-reports'))
+        
         header_data = {}
         report_id = self.kwargs['report_id']
         report = Report.objects.get(id=report_id)
@@ -158,3 +182,47 @@ class PDFView(View):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         response.write(pdf_file)
         return response
+
+
+from django.views.generic.edit import CreateView
+from .models import ReportSubmission
+from .forms import ReportSubmissionForm
+
+class ReportSubmissionCreateView(CreateView):
+    model = ReportSubmission
+    form_class = ReportSubmissionForm
+    template_name = 'reports/report_submission.html'
+    success_url = '/success/'  # Replace with the actual success URL
+
+    def form_valid(self, form):
+        # Check if there are any existing pending or approved submissions
+        report_id = self.kwargs.get('report_id')
+        form.instance.report_id = report_id
+        existing_submissions = ReportSubmission.objects.filter(
+            report_id=report_id,
+            status__in=[ReportSubmission.ReportStatus.PENDING, ReportSubmission.ReportStatus.APPROVED]
+        )
+        
+        if existing_submissions.exists():
+            # If there are existing pending or approved submissions, reject the new submission
+            messages.error(self.request, "Já existe uma submissão pendente ou aprovada para este relatório.")
+        return super().form_valid(form)
+    
+
+    def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
+        report_id = self.kwargs.get('report_id')
+        existing_submissions = ReportSubmission.objects.filter(
+            report_id=report_id,
+            status__in=[ReportSubmission.ReportStatus.PENDING, ReportSubmission.ReportStatus.APPROVED]
+        )
+        
+        if existing_submissions.exists():
+            messages.error(request, "Já existe uma submissão pendente ou aprovada para este relatório.")
+            return redirect(reverse('user-reports'))
+        else:
+            return super().get(request, *args, **kwargs)
+
+class ReportSubmissionDetailView(LoginRequiredMixin, DetailView):
+    model = ReportSubmission
+    template_name = 'reports/report_submission_details.html'
+    context_object_name = 'report_submission'

@@ -8,6 +8,7 @@
                 <tr>
                     <th>Mes de Referencia</th>
                     <th>Total de Horas</th>
+                    <th>Estado</th>
                     <th>Acoes</th>
                 </tr>
             </thead>
@@ -16,10 +17,17 @@
                     <tr>
                         <td>{{ report.ref_month|date:"F/Y" }}</td>
                         <td>{{ report.total_hours }}</td>
+                        {% if report.state == 'Rejeitado' %}
+                            <td><a class="text-danger" href="{% url 'report_submission_detail' report.id report.last_submission.id %}">{{ report.state }}</a></td>
+                        {% else %}
+                            <td>{{ report.state }}</td>
+                        {% endif %}
                         <td>
-                            <a href="{% url 'report-entries' report.id %}" class="btn btn-primary">Abrir</a>
-                            <a href="{% url 'report-entries' report.id %}" class="btn btn-secondary">Imprimir</a>
-                            <a href="{% url 'report-entries' report.id %}" class="btn btn-success">Submeter</a>
+                            {% if report.state == 'Aberto' or report.state == 'Rejeitado' %}
+                                <a href="{% url 'report-entries' report.id %}" class="btn btn-primary">Abrir</a>
+                                <a href="{% url 'generate_pdf' report.id %}" class="btn btn-secondary">Imprimir</a>
+                                <a href="{% url 'submit_report' report.id %}" class="btn btn-success">Entregar</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
@@ -27,4 +35,17 @@
         </table>
     </div>
 {% endblock content %}
-    
+
+{% block bodyscripts %}
+<script>
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                showSuccessToast("{{ message }}");
+            {% elif message.tags == 'error' %}
+                showErrorToast("{{ message }}");
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</script>
+{% endblock %}

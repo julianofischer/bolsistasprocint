@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from .models import ReportEntry
+from .models import ReportEntry, ReportSubmission
 
 
 class LoginForm(forms.Form):
@@ -15,3 +15,8 @@ class ReportEntryForm(forms.ModelForm):
     class Meta:
         model = ReportEntry
         fields = ['description', 'date', 'init_hour', 'end_hour']
+
+class ReportSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = ReportSubmission
+        fields = ['pdf_file']

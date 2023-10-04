@@ -1,0 +1,18 @@
+
+{% extends 'reports/base.html' %}
+
+{% block content %}
+<div class="container">
+  <h2>Report Submission Details</h2>
+  <ul>
+    <li><strong>Report ID:</strong> {{ report_submission.report.id }}</li>
+    <li><strong>Submitted At:</strong> {{ report_submission.submitted_at }}</li>
+    <li><strong>Status:</strong> {{ report_submission.status }}</li>
+    <li><strong>Reviewed at:</strong> {{ report_submission.last_status_change }} </li>
+    <li><strong>Reviewer:</strong> {{ report_submission.reviewer }}</li>
+    <li><strong>PDF File:</strong> <a href="{{ report_submission.pdf_file.url }}" target="_blank">{{ report_submission.pdf_file.name }}</a></li>
+    <li><strong>Reason:</strong> {{ report_submission.reason }}</li>
+  </ul>
+  <a href="{% url 'user-reports' %}" class="btn btn-primary">Back to My Reports</a>
+</div>
+{% endblock %}
