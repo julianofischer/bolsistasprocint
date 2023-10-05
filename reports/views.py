@@ -52,7 +52,7 @@ class UserReportsListView(LoginRequiredMixin, ListView):
         user = self.request.user
 
         # Query all reports related to the user
-        return Report.objects.filter(user=user)
+        return Report.objects.filter(user=user).order_by("-ref_month")
 
 
 class ReportEntriesListView(LoginRequiredMixin, ListView):
@@ -274,3 +274,20 @@ class ReportSubmissionDetailView(LoginRequiredMixin, DetailView):
     model = ReportSubmission
     template_name = "reports/report_submission_details.html"
     context_object_name = "report_submission"
+
+
+def create_report(request):
+    if request.method == 'POST':
+        # check if a report for current month already exists
+        report = Report.objects.filter(user=request.user, ref_month__year=datetime.now().year, ref_month__month=datetime.now().month)
+        if not report:
+            # Create a new Report instance with default values
+            now = datetime.now()
+            report = Report.objects.create(ref_month=now, user=request.user)  # Modify this to set default values as needed
+            messages.success(request, "Relatorio criado com sucesso!")
+        else:
+            messages.error(request, "Relatorio ja existe para este mes!")
+    else:
+        messages.error(request, "Metodo nao permitido!")
+    
+    return redirect('user-reports') 

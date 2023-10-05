@@ -73,10 +73,19 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+    class Meta:
+        verbose_name = "Usuario"
+        verbose_name_plural = "Usuarios"
 
 
 # Create your models here.
 class Report(models.Model):
+    
+    class Meta:
+        verbose_name = "Relatorio"
+        verbose_name_plural = "Relatorios"
+
     created_at = models.DateTimeField(auto_now_add=True)
     ref_month = models.DateField()
     user = models.ForeignKey(
@@ -107,6 +116,10 @@ class Report(models.Model):
 
 
 class ReportEntry(models.Model):
+    class Meta:
+        verbose_name = "Atividade"
+        verbose_name_plural = "Atividades"
+
     report = models.ForeignKey(
         Report, on_delete=models.CASCADE, related_name="entries"
     )
@@ -128,9 +141,15 @@ class ReportEntry(models.Model):
             seconds=end_time.second - init_time.second
         )
         return time_difference
+    
+    def __str__(self) -> str:
+        return f"{self.report.user} - {self.date} ({self.hours})"
 
 
 class ReportSubmission(models.Model):
+    class Meta:
+        verbose_name = "Relatorio entregue"
+        verbose_name_plural = "Relatorios entregues"
     class ReportStatus(models.TextChoices):
         PENDING = "Em analise"
         APPROVED = "Aprovado"
@@ -152,6 +171,9 @@ class ReportSubmission(models.Model):
     pdf_file = models.FileField(upload_to="reports")
     reason = models.CharField(max_length=1024, blank=True)
 
+    def __str__(self) -> str:
+        return f"{self.report.user} - {self.submitted_at} ({self.status})"
+
 
 @receiver(pre_save, sender=ReportSubmission)
 def update_last_status_change(sender, instance, **kwargs):
@@ -159,3 +181,18 @@ def update_last_status_change(sender, instance, **kwargs):
         original_submission = ReportSubmission.objects.get(pk=instance.pk)
         if original_submission.status != instance.status:
             instance.last_status_change = timezone.now()
+
+
+
+class PendingReportSubmissionsManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status=ReportSubmission.ReportStatus.PENDING)
+
+class PendingReportSubmission(ReportSubmission):
+    manager = PendingReportSubmissionsManager()
+    class Meta:
+        proxy = True
+        verbose_name = "Relatorio pendente de analise"
+        verbose_name_plural = "Relatorios pendentes de analise"
+
+    
