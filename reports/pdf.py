@@ -5,7 +5,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus.tables import Table, TableStyle
 from reportlab.lib import colors
 from io import BytesIO
-import os
+import datetime, os
 from django.conf import settings
 
 def __process_row_data(row_data):
@@ -135,6 +135,21 @@ def generate_pdf(header_data, row_data):
     # Add the table to the document
     elements.append(Spacer(1, 12))  # Add some space before the table
     elements.append(table)
+    
+    total_horas = sum([row["ch"] for row in row_data], datetime.timedelta())
+    footer_table = Table([[f"Total de horas: {total_horas}"]], colWidths=[total_width])
+    footer_table_style = TableStyle(
+        [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.darkgrey),
+            ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+            ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+            ("FONTNAME", (0, 0), (-1, -1), "Times-Bold"),  # Times Roman font for table content
+            ("FONTSIZE", (0, 0), (-1, -1), 10),  # Font size 10 for table content
+        ]
+    )
+    footer_table.setStyle(footer_table_style)
+    elements.append(footer_table)  # Add some space before the table
 
     # Add space for signatures
     elements.append(Spacer(1, 48))  # Add space for signatures (adjust as needed)
@@ -160,7 +175,6 @@ def generate_pdf(header_data, row_data):
     )
     
     signature_table.setStyle(signature_table_style)
-    
     elements.append(signature_table)  # Add the signature table to the document
 
     # Build the PDF document
