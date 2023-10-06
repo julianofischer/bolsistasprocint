@@ -7,12 +7,12 @@
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>Descricao</th>
+                    <th>Descrição</th>
                     <th>Data</th>
-                    <th>Inicio</th>
+                    <th>Início</th>
                     <th>Fim</th>
                     <th>Tempo</th>
-                    <th>Acoes</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -25,9 +25,9 @@
                         <td>{{ entry.hours }}</td>
                         <td>
                             <a href="{% url 'edit_report_entry' report_id=report_id pk=entry.id %}"
-                               class="btn btn-primary">Edit</a>
+                               class="btn btn-primary">Editar</a>
                             <a href="{% url 'delete_report_entry' report_id=report_id pk=entry.id %}"
-                               class="btn btn-danger">Delete</a>
+                               class="btn btn-danger">Excluir</a>
                         </td>
                     </tr>
                 {% endfor %}
