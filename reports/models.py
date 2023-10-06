@@ -75,16 +75,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
     
     class Meta:
-        verbose_name = "Usuario"
-        verbose_name_plural = "Usuarios"
+        verbose_name = "Usuário"
+        verbose_name_plural = "Usuários"
 
 
 # Create your models here.
 class Report(models.Model):
     
     class Meta:
-        verbose_name = "Relatorio"
-        verbose_name_plural = "Relatorios"
+        verbose_name = "Relatório"
+        verbose_name_plural = "Relatórios"
 
     created_at = models.DateTimeField(auto_now_add=True)
     ref_month = models.DateField()
@@ -148,10 +148,10 @@ class ReportEntry(models.Model):
 
 class ReportSubmission(models.Model):
     class Meta:
-        verbose_name = "Relatorio entregue"
-        verbose_name_plural = "Relatorios entregues"
+        verbose_name = "Relatório entregue"
+        verbose_name_plural = "Relatórios entregues"
     class ReportStatus(models.TextChoices):
-        PENDING = "Em analise"
+        PENDING = "Em análise"
         APPROVED = "Aprovado"
         REJECTED = "Rejeitado"
 
@@ -192,7 +192,7 @@ class PendingReportSubmission(ReportSubmission):
     manager = PendingReportSubmissionsManager()
     class Meta:
         proxy = True
-        verbose_name = "Relatorio pendente de analise"
-        verbose_name_plural = "Relatorios pendentes de analise"
+        verbose_name = "Relatório pendente de análise"
+        verbose_name_plural = "Relatórios pendentes de análise"
 
     
