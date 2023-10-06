@@ -1,9 +1,13 @@
 # forms.py
 from django import forms
-from .models import ReportEntry, ReportSubmission
+from .models import ReportEntry, ReportSubmission, CustomUser
+from django.contrib.auth.forms import AuthenticationForm
 
-
-class LoginForm(forms.Form):
+class LoginForm(AuthenticationForm):
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'password']
+    
     email = forms.EmailField(
         max_length=100, widget=forms.TextInput(attrs={"class": "form-control"})
     )

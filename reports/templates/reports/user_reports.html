@@ -1,4 +1,5 @@
 {% extends 'reports/base.html' %}
+{% load reports_custom_tags %}
 {% block title %}Inserir Relatório{% endblock %}
 {% block content %}
     <div class="container card d-flex flex-column align-items-center mt-5">
@@ -16,7 +17,7 @@
                 {% for report in reports %}
                     <tr>
                         <td>{{ report.ref_month|date:"F/Y" }}</td>
-                        <td>{{ report.total_hours }}</td>
+                        <td>{{ report.total_hours|timedelta_hours }}</td>
                         {% if report.state == 'Rejeitado' %}
                             <td><a class="text-danger" href="{% url 'report_submission_detail' report.id report.last_submission.id %}">{{ report.state }}</a></td>
                         {% else %}

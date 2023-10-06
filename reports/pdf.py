@@ -7,6 +7,7 @@ from reportlab.lib import colors
 from io import BytesIO
 import datetime, os
 from django.conf import settings
+from .templatetags.reports_custom_tags import timedelta_hours
 
 def __process_row_data(row_data):
     """
@@ -137,6 +138,8 @@ def generate_pdf(header_data, row_data):
     elements.append(table)
     
     total_horas = sum([row["ch"] for row in row_data], datetime.timedelta())
+    total_horas = timedelta_hours(total_horas)
+
     footer_table = Table([[f"Total de horas: {total_horas}"]], colWidths=[total_width])
     footer_table_style = TableStyle(
         [

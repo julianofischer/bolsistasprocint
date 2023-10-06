@@ -28,8 +28,9 @@ from datetime import datetime, timedelta
 
 class CustomLoginView(LoginView):
     template_name = "reports/login.html"  # Specify your custom login template
+    # add my login form
     success_url = reverse_lazy(
-        "/relatorios"
+        "user-reports"
     )  # Replace 'home' with your desired redirect URL
 
 
@@ -72,7 +73,7 @@ class ReportEntriesListView(LoginRequiredMixin, ListView):
 
         if existing_submissions.exists():
             messages.error(
-                request, "Nao e possivel abrir relatorio enviado para analise."
+                request, "Não é possível abrir relatório enviado para análise."
             )
             return redirect(reverse("user-reports"))
         else:
@@ -96,7 +97,6 @@ class ReportEntriesListView(LoginRequiredMixin, ListView):
             display_entry.date = datetime.now() - timedelta(days=1)
             data["display_entry"] = display_entry
 
-
         data["report_id"] = self.kwargs["report_id"]
         data["edit_mode"] = self.kwargs.get("edit_mode", False)
         data["total_hours"] = Report.objects.get(
@@ -113,7 +113,34 @@ class ReportEntryCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView)
 
     def form_valid(self, form):
         form.instance.report_id = self.kwargs["report_id"]
-        return super().form_valid(form)
+        validated = True
+        # init_hour must be before end_hour
+        if form.instance.init_hour > form.instance.end_hour:
+            validated = False
+            messages.error(
+                self.request,
+                "A hora de início deve ser anterior à hora de término.",
+            )
+
+        # date must be in the same month as the report
+        report = Report.objects.get(id=self.kwargs["report_id"])
+        if (
+            form.instance.date.month != report.ref_month.month
+            or form.instance.date.year != report.ref_month.year
+        ):
+            validated = False
+            messages.error(
+                self.request,
+                "A data da atividade deve estar no mesmo mês do relatório.",
+            )
+        if validated:
+            return super().form_valid(form)
+        else:
+             return redirect(
+                reverse_lazy(
+                    "report-entries", kwargs={"report_id": self.kwargs["report_id"]}
+                )
+            )
 
     def get_success_url(self):
         # Define the URL where you want to redirect after a successful form submission
@@ -184,7 +211,7 @@ class PDFView(View):
 
         if existing_submissions.exists():
             messages.error(
-                request, "Nao e possivel imprimir relatorio enviado para analise."
+                request, "Não é possível imprimir relatório enviado para análise."
             )
             return redirect(reverse("user-reports"))
 
@@ -277,17 +304,23 @@ class ReportSubmissionDetailView(LoginRequiredMixin, DetailView):
 
 
 def create_report(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         # check if a report for current month already exists
-        report = Report.objects.filter(user=request.user, ref_month__year=datetime.now().year, ref_month__month=datetime.now().month)
+        report = Report.objects.filter(
+            user=request.user,
+            ref_month__year=datetime.now().year,
+            ref_month__month=datetime.now().month,
+        )
         if not report:
             # Create a new Report instance with default values
             now = datetime.now()
-            report = Report.objects.create(ref_month=now, user=request.user)  # Modify this to set default values as needed
-            messages.success(request, "Relatorio criado com sucesso!")
+            report = Report.objects.create(
+                ref_month=now, user=request.user
+            )  # Modify this to set default values as needed
+            messages.success(request, "Relatório criado com sucesso!")
         else:
-            messages.error(request, "Relatorio ja existe para este mes!")
+            messages.error(request, "Relatório já existe para o mês selecionado!")
     else:
-        messages.error(request, "Metodo nao permitido!")
-    
-    return redirect('user-reports') 
+        messages.error(request, "Método nao permitido!")
+
+    return redirect("user-reports")

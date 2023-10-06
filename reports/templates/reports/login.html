@@ -11,7 +11,8 @@
               class="card-img-top"
               alt="..."
             /> --> 
-            <div class="card-body">
+            <div class="card-body login-form">
+              <h2 class="card-title text-center pb-3">Iniciar sessão</h2>
               <form method="post">
                 {% csrf_token %} {% for field in form %}
                 <div class="mb-3 form-group">
@@ -24,7 +25,7 @@
                 <button type="submit" class="btn btn-primary">
                   Iniciar sessão
                 </button>
-                <p class="mt-2"><a class="link-opacity-75" href="#">Criar conta</a></p>
+                <!-- <p class="mt-2"><a class="link-opacity-75" href="#">Criar conta</a></p> -->
               </form>
             </div>
           </div>

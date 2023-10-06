@@ -34,12 +34,12 @@
             </tbody>
             <tfoot style="text-align: center; background-color: aliceblue;">
                 <tr>
-                    <td colspan="6">Total de Horas: {{ total_hours }}</td>
+                    <td colspan="6">Total de Horas: {{ total_hours|timedelta_hours }}</td>
                 </tr>
             </tfoot>
         </table>
     </div>
-    <div class="container mt-4 p-4 card">
+    <div class="container mt-4 p-4 card mb-4">
         {% if edit_mode %}
             <h1>Editar Entrada</h1>
             <form method="post"
@@ -51,7 +51,7 @@
         {% endif %}
                 {% csrf_token %}
                 <div class="form-group">
-                    <label for="description">Description:</label>
+                    <label for="description">Descrição:</label>
                     <input type="text"
                            class="form-control"
                            id="description"
@@ -60,7 +60,7 @@
                            value="{{ display_entry.description }}">
                 </div>
                 <div class="form-group">
-                    <label for="date">Date:</label>
+                    <label for="date">Data:</label>
                     <input type="date"
                            class="form-control"
                            id="date"
@@ -74,7 +74,7 @@
                             >
                 </div>
                 <div class="form-group">
-                    <label for="init_hour">Start Hour:</label>
+                    <label for="init_hour">Hora de início:</label>
                     <input type="time"
                            class="form-control"
                            id="init_hour"
@@ -83,7 +83,7 @@
                            value="{{ display_entry.init_hour }}">
                 </div>
                 <div class="form-group">
-                    <label for="end_hour">End Hour:</label>
+                    <label for="end_hour">Hora de fim:</label>
                     <input type="time"
                            class="form-control"
                            id="end_hour"
