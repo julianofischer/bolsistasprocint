@@ -1,7 +1,7 @@
 {% extends 'reports/base.html' %}
 
 {% block content %}
-<div class="container">
+<div class="container card p-5 mt-4">
   <h2>Entregar Relatório</h2>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
@@ -11,7 +11,7 @@
       {{ form.pdf_file }}
     </div>
 
-    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+    <button type="submit" class="btn btn-primary mt-3">Entregar</button>
   </form>
 </div>
 {% endblock %}
