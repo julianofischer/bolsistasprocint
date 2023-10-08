@@ -118,6 +118,7 @@ def generate_pdf(header_data, row_data):
             ("GRID", (0, 0), (-1, -1), 1, colors.black),
             ("FONTNAME", (0, 1), (-1, -1), "Times-Roman"),  # Times Roman font for table content
             ("FONTSIZE", (0, 0), (-1, -1), 8),  # Font size 10 for table content
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), # vertical alignment
         ]
     )
 
@@ -185,5 +186,3 @@ def generate_pdf(header_data, row_data):
     pdf_file = buffer.getvalue()
     buffer.close()
     return pdf_file
-
-# generate_pdf("7.pdf", {}, {"dia": "01", "atividade": "atividade", "inicio": "08:00", "fim": "12:00", "ch": "4"})

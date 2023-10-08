@@ -162,3 +162,5 @@ cython_debug/
 */migrations/0*_*.py
 static/
 *.pdf
+
+bolsistasprocint/settings-prod.py

@@ -22,6 +22,14 @@
                   {{ field }}
                 </div>
                 {% endfor %}
+                  {% if form.non_field_errors %}
+                  <div class="pb-3">
+                    {% for error in form.non_field_errors %}
+                      <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+
                 <button type="submit" class="btn btn-primary">
                   Iniciar sessão
                 </button>

@@ -35,6 +35,10 @@ class CustomUserManager(BaseUserManager):
 class Scholarship(models.Model):
     name = models.CharField(max_length=30)
 
+    class Meta:
+        verbose_name = "Tipo de Bolsa"
+        verbose_name_plural = "Tipos de Bolsas"
+
     def __str__(self):
         return self.name
 
@@ -42,12 +46,20 @@ class Scholarship(models.Model):
 class Role(models.Model):
     name = models.CharField(max_length=30)
 
+    class Meta:
+        verbose_name = "Função"
+        verbose_name_plural = "Funções"
+
     def __str__(self):
         return self.name
 
 
 class Eixo(models.Model):
     name = models.CharField(max_length=30)
+
+    class Meta:
+        verbose_name = "Eixo"
+        verbose_name_plural = "Eixos"
 
     def __str__(self):
         return self.name
@@ -98,14 +110,14 @@ class Report(models.Model):
     
     @property
     def state(self):
-        if self.submission.exists():
-            return self.submission.last().status
+        if self.submissions.exists():
+            return self.submissions.last().status
         return "Aberto"
     
     @property
     def last_submission(self):
-        if self.submission.exists():
-            return self.submission.last()
+        if self.submissions.exists():
+            return self.submissions.last()
         return None
 
     def formatted_ref_month(self):
@@ -156,7 +168,7 @@ class ReportSubmission(models.Model):
         REJECTED = "Rejeitado"
 
     report = models.ForeignKey(
-        Report, on_delete=models.CASCADE, related_name="submission"
+        Report, on_delete=models.CASCADE, related_name="submissions"
     )
     submitted_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(

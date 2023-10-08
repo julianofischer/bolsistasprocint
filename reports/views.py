@@ -1,5 +1,4 @@
 from typing import Any, Dict
-from django.db import models
 from django.db.models.query import QuerySet
 from django.shortcuts import render
 from django.contrib import messages
@@ -28,10 +27,6 @@ from datetime import datetime, timedelta
 
 class CustomLoginView(LoginView):
     template_name = "reports/login.html"  # Specify your custom login template
-    # add my login form
-    success_url = reverse_lazy(
-        "user-reports"
-    )  # Replace 'home' with your desired redirect URL
 
 
 def inserir_relatorio_view(request):
@@ -241,7 +236,7 @@ class PDFView(View):
         pdf_file = generate_pdf(header_data, row_data)
         response = HttpResponse(content_type="application/pdf")
         filename = f"{report.user.name} - {report.ref_month.strftime('%B')} - {report.ref_month.year}.pdf"
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
         response.write(pdf_file)
         return response
 
@@ -255,7 +250,7 @@ class ReportSubmissionCreateView(CreateView):
     model = ReportSubmission
     form_class = ReportSubmissionForm
     template_name = "reports/report_submission.html"
-    success_url = "/success/"  # Replace with the actual success URL
+    success_url = reverse_lazy("user-reports")
 
     def form_valid(self, form):
         # Check if there are any existing pending or approved submissions
@@ -275,6 +270,8 @@ class ReportSubmissionCreateView(CreateView):
                 self.request,
                 "Já existe uma submissão pendente ou aprovada para este relatório.",
             )
+        else:
+            messages.success(self.request, "Relatório submetido para aprovação com sucesso!")
         return super().form_valid(form)
 
     def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
