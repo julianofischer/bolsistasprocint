@@ -74,6 +74,15 @@ class ReportSubmissionAdmin(admin.ModelAdmin):
 
 class CustomUserAdmin(admin.ModelAdmin):
     list_display = ("name", "email", "scholarship", "role", "eixo", "ch")
+    list_filter = ("is_active",)
+
+    actions = ["ativar", "desativar"]
+
+    def ativar(self, request, queryset):
+        queryset.update(is_active=True)
+    
+    def desativar(self, request, queryset):
+        queryset.update(is_active=False)
 
 
 class PendingReportSubmissionAdmin(admin.ModelAdmin):

@@ -1,18 +1,20 @@
 from typing import Any, Dict
+from django.contrib.auth.forms import AuthenticationForm
 from django.db.models.query import QuerySet
-from django.shortcuts import render
+from django.forms.forms import BaseForm
+from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 
 # Create your views here.
 # views.py
 from django.shortcuts import render, redirect
-from .forms import LoginForm
+from .forms import CustomUserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.contrib.messages.views import SuccessMessageMixin
-from .models import Report, ReportEntry
+from .models import Report, ReportEntry, CustomUser
 from django.views.generic import (
     ListView,
     CreateView,
@@ -27,6 +29,24 @@ from datetime import datetime, timedelta
 
 class CustomLoginView(LoginView):
     template_name = "reports/login.html"  # Specify your custom login template
+
+    # if user is already logged in, redirect to user-reports
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("user-reports")
+        return super().get(request, *args, **kwargs)
+
+    def form_invalid(self, form):
+        # check if user exists and is active
+        email = form.cleaned_data.get("username")
+        # get custom user class
+        user = CustomUser.objects.filter(email=email).first()
+        if user and not user.is_active:
+            messages.error(self.request, "Usuário não está ativo.")
+            form.add_error("username", "Usuário não está ativo.")
+            form.non_field_errors = None
+            self.render_to_response(self.get_context_data(form=form))
+        return super().form_invalid(form)
 
 
 def inserir_relatorio_view(request):
@@ -76,8 +96,11 @@ class ReportEntriesListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> QuerySet[Any]:
         report_id = self.kwargs["report_id"]
-        # Query all entries related to the report
-        return ReportEntry.objects.filter(report__id=report_id)
+        user = self.request.user
+        # Query all entries related to the report and the user
+        # if the report doesn't belong to the user, raise an 404 error
+        report = get_object_or_404(Report, id=report_id, user=user)
+        return report.entries.all().order_by("-date")
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         data = super().get_context_data(**kwargs)
@@ -109,6 +132,16 @@ class ReportEntryCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView)
     def form_valid(self, form):
         form.instance.report_id = self.kwargs["report_id"]
         validated = True
+
+        # add entry only if report belongs to the user
+        report = Report.objects.get(id=self.kwargs["report_id"])
+        if report.user != self.request.user:
+            validated = False
+            messages.error(
+                self.request,
+                "Não é possível adicionar entrada a um relatório que não pertence ao usuário.",
+            )
+
         # init_hour must be before end_hour
         if form.instance.init_hour > form.instance.end_hour:
             validated = False
@@ -131,7 +164,7 @@ class ReportEntryCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView)
         if validated:
             return super().form_valid(form)
         else:
-             return redirect(
+            return redirect(
                 reverse_lazy(
                     "report-entries", kwargs={"report_id": self.kwargs["report_id"]}
                 )
@@ -154,8 +187,11 @@ class ReportEntryUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
 
     def get_queryset(self) -> QuerySet[Any]:
         report_id = self.kwargs["report_id"]
-        # Query all entries related to the report
-        return ReportEntry.objects.filter(report__id=report_id)
+        user = self.request.user
+        # Query all entries related to the report and the user
+        # if the report doesn't belong to the user, raise an 404 error
+        report = get_object_or_404(Report, id=report_id, user=user)
+        return report.entries.all().order_by("-date")
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         data = super().get_context_data(**kwargs)
@@ -177,10 +213,59 @@ class ReportEntryUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
             "report-entries", kwargs={"report_id": self.kwargs["report_id"]}
         )
 
+    def form_valid(self, form):
+        form.instance.report_id = self.kwargs["report_id"]
+        validated = True
+
+        # add entry only if report belongs to the user
+        report = Report.objects.get(id=self.kwargs["report_id"])
+        if report.user != self.request.user:
+            validated = False
+            messages.error(
+                self.request,
+                "Não é possível adicionar entrada a um relatório que não pertence ao usuário.",
+            )
+
+        # init_hour must be before end_hour
+        if form.instance.init_hour > form.instance.end_hour:
+            validated = False
+            messages.error(
+                self.request,
+                "A hora de início deve ser anterior à hora de término.",
+            )
+
+        # date must be in the same month as the report
+        report = Report.objects.get(id=self.kwargs["report_id"])
+        if (
+            form.instance.date.month != report.ref_month.month
+            or form.instance.date.year != report.ref_month.year
+        ):
+            validated = False
+            messages.error(
+                self.request,
+                "A data da atividade deve estar no mesmo mês do relatório.",
+            )
+        if validated:
+            return super().form_valid(form)
+        else:
+            return redirect(
+                reverse_lazy(
+                    "report-entries", kwargs={"report_id": self.kwargs["report_id"]}
+                )
+            )
+
 
 class ReportEntryDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = ReportEntry
     success_message = "Entrada deletada com sucesso!"
+
+    def get_object(self, queryset=None):
+        # Get the report entry based on the provided report_id and entry_id
+        report_id = self.kwargs["report_id"]
+        report = get_object_or_404(Report, pk=report_id, user=self.request.user)
+        entry_id = self.kwargs["pk"]
+        entry = get_object_or_404(ReportEntry, pk=entry_id, report__id=report_id)
+        return entry
 
     def get_success_url(self):
         # Define the URL where you want to redirect after a successful form submission
@@ -196,8 +281,10 @@ from django.http import HttpRequest, HttpResponse
 class PDFView(View):
     def get(self, request, *args, **kwargs):
         report_id = self.kwargs.get("report_id")
-        existing_submissions = ReportSubmission.objects.filter(
-            report_id=report_id,
+
+        # check if report belongs to the user
+        report = get_object_or_404(Report, id=report_id, user=request.user)
+        existing_submissions = report.submissions.filter(
             status__in=[
                 ReportSubmission.ReportStatus.PENDING,
                 ReportSubmission.ReportStatus.APPROVED,
@@ -255,9 +342,9 @@ class ReportSubmissionCreateView(CreateView):
     def form_valid(self, form):
         # Check if there are any existing pending or approved submissions
         report_id = self.kwargs.get("report_id")
+        report = get_object_or_404(Report, id=report_id, user=self.request.user)
         form.instance.report_id = report_id
-        existing_submissions = ReportSubmission.objects.filter(
-            report_id=report_id,
+        existing_submissions = report.submissions.filter(
             status__in=[
                 ReportSubmission.ReportStatus.PENDING,
                 ReportSubmission.ReportStatus.APPROVED,
@@ -271,13 +358,15 @@ class ReportSubmissionCreateView(CreateView):
                 "Já existe uma submissão pendente ou aprovada para este relatório.",
             )
         else:
-            messages.success(self.request, "Relatório submetido para aprovação com sucesso!")
+            messages.success(
+                self.request, "Relatório submetido para aprovação com sucesso!"
+            )
         return super().form_valid(form)
 
     def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
         report_id = self.kwargs.get("report_id")
-        existing_submissions = ReportSubmission.objects.filter(
-            report_id=report_id,
+        report = get_object_or_404(Report, id=report_id, user=self.request.user)
+        existing_submissions = report.submissions.filter(
             status__in=[
                 ReportSubmission.ReportStatus.PENDING,
                 ReportSubmission.ReportStatus.APPROVED,
@@ -298,6 +387,12 @@ class ReportSubmissionDetailView(LoginRequiredMixin, DetailView):
     model = ReportSubmission
     template_name = "reports/report_submission_details.html"
     context_object_name = "report_submission"
+
+    def get_queryset(self) -> QuerySet[Any]:
+        # check if the report belongs to the user
+        report_id = self.kwargs.get("report_id")
+        report = get_object_or_404(Report, id=report_id, user=self.request.user)
+        return report.submissions.all()
 
 
 def create_report(request):
@@ -321,3 +416,20 @@ def create_report(request):
         messages.error(request, "Método nao permitido!")
 
     return redirect("user-reports")
+
+
+def register_view(request):
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False  # Set user as inactive until email confirmation
+            user.save()
+            # You can send an email with a confirmation link here
+            # After email confirmation, set user.is_active = True and save
+            # Send the confirmation email here
+            login(request, user)  # Log in the user
+            return redirect("user-reports")  # Redirect to a profile or home page
+    else:
+        form = CustomUserCreationForm()
+    return render(request, "reports/register.html", {"form": form})

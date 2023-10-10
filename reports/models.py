@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from datetime import datetime, timedelta
-
+from phonenumber_field.modelfields import PhoneNumberField
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -33,7 +33,7 @@ class CustomUserManager(BaseUserManager):
 
 
 class Scholarship(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=256)
 
     class Meta:
         verbose_name = "Tipo de Bolsa"
@@ -44,7 +44,7 @@ class Scholarship(models.Model):
 
 
 class Role(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=256)
 
     class Meta:
         verbose_name = "Função"
@@ -67,16 +67,17 @@ class Eixo(models.Model):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    name = models.CharField(max_length=30)
-    is_active = models.BooleanField(default=True)
+    name = models.CharField(max_length=30, verbose_name="Nome")
+    is_active = models.BooleanField(default=True, verbose_name="Ativo")
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     scholarship = models.ForeignKey(
-        Scholarship, on_delete=models.CASCADE, null=True
+        Scholarship, on_delete=models.CASCADE, null=True, blank=True
     )
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True)
-    eixo = models.ForeignKey(Eixo, on_delete=models.CASCADE, null=True)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True, blank=True)
+    eixo = models.ForeignKey(Eixo, on_delete=models.CASCADE, null=True, blank=True)
     ch = models.IntegerField(default=0)
+    phone_number = PhoneNumberField(null=True, blank=True, region="BR")
 
     objects = CustomUserManager()
 

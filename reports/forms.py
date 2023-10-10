@@ -2,6 +2,7 @@
 from django import forms
 from .models import ReportEntry, ReportSubmission, CustomUser
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 
 class LoginForm(AuthenticationForm):
     class Meta:
@@ -24,3 +25,9 @@ class ReportSubmissionForm(forms.ModelForm):
     class Meta:
         model = ReportSubmission
         fields = ['pdf_file']
+
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = CustomUser
+        fields = ('email', 'name', 'password1', 'password2')

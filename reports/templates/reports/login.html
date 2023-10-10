@@ -17,10 +17,15 @@
                 {% csrf_token %} {% for field in form %}
                 <div class="mb-3 form-group">
                   <label for="{{ field.id_for_label }}" class="form-label"
-                    >{{ field.label }}</label
-                  >
+                    >{{ field.label }}</label>
                   {{ field }}
-                </div>
+                  {% if field.errors %}
+                  <div class="text-danger">
+                    {% for error in field.errors %}
+                      <div>{{ error }}</div>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
                 {% endfor %}
                   {% if form.non_field_errors %}
                   <div class="pb-3">
@@ -41,3 +46,17 @@
       </div>
     </div>
 {% endblock %}
+
+{% block bodyscripts %}
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    showSuccessToast("{{ message }}");
+                {% elif message.tags == 'error' %}
+                    showErrorToast("{{ message }}");
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </script>
+    {% endblock %}
