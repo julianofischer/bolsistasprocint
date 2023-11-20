@@ -181,7 +181,7 @@ class ReportSubmission(models.Model):
     reviewer = models.ForeignKey(
         CustomUser, related_name="submissions", on_delete=models.SET_NULL, null=True
     )
-    pdf_file = models.FileField(upload_to="reports")
+    pdf_file = models.FileField(upload_to="media/reports")
     reason = models.CharField(max_length=1024, blank=True)
 
     def __str__(self) -> str:
