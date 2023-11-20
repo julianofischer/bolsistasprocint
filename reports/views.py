@@ -304,7 +304,7 @@ class PDFView(View):
         header_data["bolsista"] = report.user.name
         header_data["funcao"] = report.user.role
         header_data["periodo"] = report.formatted_ref_month()
-        header_data["telefone_institucional"] = ""
+        header_data["telefone"] = report.user.phone_number or ""
         header_data["email"] = report.user.email
 
         row_data = []

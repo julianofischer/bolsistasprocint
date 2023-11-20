@@ -38,7 +38,7 @@ def generate_pdf(header_data, row_data):
     bolsista = header_data.get("bolsista", "bolsista")	
     funcao = header_data.get("funcao", "funcao")
     periodo = header_data.get("periodo", "periodo")
-    telefone_institucional = header_data.get("telefone_institucional", "telefone_institucional")
+    telefone = header_data.get("telefone", "telefone")
     email = header_data.get("email", "email")
 
     buffer = BytesIO()
@@ -73,7 +73,7 @@ def generate_pdf(header_data, row_data):
         ["Nome:", bolsista],
         ["Função:", funcao],
         ["Período:", periodo],
-        ["Tel. Institucional:", telefone_institucional],
+        ["Telefone:", telefone],
         ["E-mail:", email],
     ]
     
