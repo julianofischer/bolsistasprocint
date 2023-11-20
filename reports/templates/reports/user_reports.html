@@ -37,6 +37,12 @@
         <div>
             {% now "Y" as current_year %}
             {% now "m" as current_month %}
+            {% if not reports %}
+            <form action="{% url 'create_report' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary" formmethod="post">Inicializar Relatório do Mes</button>
+            </form>
+            {% endif %}
             {% if reports and reports.0 %}
                 {% if reports.0.ref_month|date:"Y" != current_year or reports.0.ref_month|date:"m" != current_month %}
                     <form action="{% url 'create_report' %}" method="post">
