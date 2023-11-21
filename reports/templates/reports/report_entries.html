@@ -39,7 +39,7 @@
             </tfoot>
         </table>
     </div>
-    <div class="container mt-4 p-4 card mb-4">
+    <div class="container mt-4 p-2 card mb-1">
         {% if edit_mode %}
             <h1>Editar Entrada</h1>
             <form method="post"
@@ -100,12 +100,13 @@
             {% endif %}
             </form>
         </div>
-    </div>
-    
-    <div class="container p-4 d-flex justify-content-end">
-        <button type="button" class="btn btn-primary" onclick="location.href='{% url 'user-reports' %}'">
-            Finalizar
-        </button>
+        
+        <div class="container d-flex justify-content-end p-0">
+            <button type="button" class="btn btn-primary" onclick="location.href='{% url 'user-reports' %}'">
+                Finalizar
+            </button>
+        </div>
+
     </div>
 
     {% endblock %}
