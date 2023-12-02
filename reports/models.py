@@ -7,8 +7,11 @@ from django.db import models
 from django.utils import timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+
 from datetime import datetime, timedelta
 from phonenumber_field.modelfields import PhoneNumberField
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -86,7 +89,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-    
+
     class Meta:
         verbose_name = "Usuário"
         verbose_name_plural = "Usuários"
@@ -94,7 +97,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 # Create your models here.
 class Report(models.Model):
-    
     class Meta:
         verbose_name = "Relatório"
         verbose_name_plural = "Relatórios"
@@ -104,17 +106,30 @@ class Report(models.Model):
     user = models.ForeignKey(
         "reports.CustomUser", related_name="reports", on_delete=models.CASCADE
     )
+    
+    def signed(self):
+        return self.signatures.exists()
+    
+    @property
+    def is_signed(self):
+        return self.signed()
+
+    def signed_by_user(self):
+        return self.signatures.filter(user=self.user).exists()
+    
+    def signed_by_staff(self):
+        return self.signatures.filter(user__is_staff=True).exclude(user=self.user).exists()
 
     @property
     def total_hours(self):
         return sum([entry.hours for entry in self.entries.all()], timedelta(0))
-    
+
     @property
     def state(self):
         if self.submissions.exists():
             return self.submissions.last().status
         return "Aberto"
-    
+
     @property
     def last_submission(self):
         if self.submissions.exists():
@@ -122,10 +137,26 @@ class Report(models.Model):
         return None
 
     def formatted_ref_month(self):
-        return self.ref_month.strftime('%m-%Y')
-    
+        return self.ref_month.strftime("%m-%Y")
+
     def __str__(self) -> str:
         return f"{self.user} - {self.formatted_ref_month()} ({self.total_hours})"
+    
+    # only save if it is opened
+    def save(self, *args, **kwargs):
+        # 'Report' instance needs to have a primary key value before this relationship can be used.
+        print(self.pk)
+        if not self.pk or not self.signed():
+            super().save(*args, **kwargs)
+        raise ValidationError("Relatório está assinado e não pode ser alterado")
+    
+    def sign(self, user):
+        if user==self.user and self.signed_by_user():
+            raise ValidationError("Usuário já assinou este relatório")
+        if user!=self.user and user.is_staff and self.signed_by_staff():
+            raise ValidationError("Gerente já assinou este relatório")
+        ReportSignature.objects.create(user=user, report=self)
+
 
 
 class ReportEntry(models.Model):
@@ -133,9 +164,7 @@ class ReportEntry(models.Model):
         verbose_name = "Atividade"
         verbose_name_plural = "Atividades"
 
-    report = models.ForeignKey(
-        Report, on_delete=models.CASCADE, related_name="entries"
-    )
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="entries")
     description = models.CharField(max_length=1024)
     date = models.DateField()
     init_hour = models.TimeField()
@@ -144,25 +173,32 @@ class ReportEntry(models.Model):
     @property
     def hours(self):
         # Convert TimeField values to datetime.time objects
-        init_time = datetime.strptime(str(self.init_hour), '%H:%M:%S').time()
-        end_time = datetime.strptime(str(self.end_hour), '%H:%M:%S').time()
+        init_time = datetime.strptime(str(self.init_hour), "%H:%M:%S").time()
+        end_time = datetime.strptime(str(self.end_hour), "%H:%M:%S").time()
 
         # Calculate the time difference as a timedelta object
         time_difference = timedelta(
             hours=end_time.hour - init_time.hour,
             minutes=end_time.minute - init_time.minute,
-            seconds=end_time.second - init_time.second
+            seconds=end_time.second - init_time.second,
         )
         return time_difference
-    
+
     def __str__(self) -> str:
         return f"{self.report.user} - {self.date} ({self.hours})"
+    
+    # only save if it is opened
+    def save(self, *args, **kwargs):
+        if not self.report.signed:
+            super().save(*args, **kwargs)
+        raise ValidationError("Relatório está assinado e não pode ser alterado")
 
 
 class ReportSubmission(models.Model):
     class Meta:
         verbose_name = "Relatório entregue"
         verbose_name_plural = "Relatórios entregues"
+
     class ReportStatus(models.TextChoices):
         PENDING = "Em análise"
         APPROVED = "Aprovado"
@@ -196,16 +232,35 @@ def update_last_status_change(sender, instance, **kwargs):
             instance.last_status_change = timezone.now()
 
 
-
 class PendingReportSubmissionsManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(status=ReportSubmission.ReportStatus.PENDING)
+        return (
+            super().get_queryset().filter(status=ReportSubmission.ReportStatus.PENDING)
+        )
+
 
 class PendingReportSubmission(ReportSubmission):
     manager = PendingReportSubmissionsManager()
+
     class Meta:
         proxy = True
         verbose_name = "Relatório pendente de análise"
         verbose_name_plural = "Relatórios pendentes de análise"
 
-    
+
+class ReportSignature(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="signatures")
+    signed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["user", "report"]
+        verbose_name = "Assinatura"
+        verbose_name_plural = "Assinaturas"
+
+    # a user can only sign his own report and only once
+    # is_staff can sign any report but only once
+    def save(self, *args, **kwargs):
+        if self.user == self.report.user or self.user.is_staff:
+            super().save(*args, **kwargs)
+        raise ValidationError("Usuário não pode assinar este relatório")

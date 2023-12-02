@@ -32,9 +32,32 @@ def __process_row_data(row_data):
 
     return data
 
+def _header_footer(canvas, doc):
+    # Save the state of our canvas so we can draw on it
+    canvas.saveState()
+    styles = getSampleStyleSheet()
+ 
+    # Header
+    header = Paragraph('This is a multi-line header.  It goes on every page.   ' * 5, styles['Normal'])
+    w, h = header.wrap(doc.width, doc.topMargin)
+    header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - h)
+ 
+    # Footer
+    footer = Paragraph('This is a multi-line footer.  It goes on every page.   ' * 5, styles['Normal'])
+    w, h = footer.wrap(doc.width, doc.bottomMargin)
+    footer.drawOn(canvas, doc.leftMargin, h)
+ 
+    # Release the canvas
+    canvas.restoreState()
+
+def onLaterPages(canvas, doc):
+    # Draw a rectangle at the bottom of the page
+    canvas.saveState()
+    canvas.rect(50, 50, doc.width, 50)  # Adjust the position and size as needed
+    canvas.restoreState()
 
 # Function to create the PDF
-def generate_pdf(header_data, row_data):
+def generate_pdf(header_data, row_data, student_signature=None, coordinator_signature=None):
     bolsista = header_data.get("bolsista", "bolsista")	
     funcao = header_data.get("funcao", "funcao")
     periodo = header_data.get("periodo", "periodo")
@@ -154,12 +177,29 @@ def generate_pdf(header_data, row_data):
     )
     footer_table.setStyle(footer_table_style)
     elements.append(footer_table)  # Add some space before the table
-
     # Add space for signatures
     elements.append(Spacer(1, 48))  # Add space for signatures (adjust as needed)
+
+
+    #student signature
+    # image_path = os.path.join(settings.BASE_DIR, "static", "assets", "certificate.png")
+    # img = Image(image_path, width=200, height=100)
+    # a = f'<img src="{img}" width="200" height="100"/>'
+    styles = getSampleStyleSheet()
+    signature_style = ParagraphStyle(
+        "centered", parent=styles["Code"], splitLongWords=1, borderColor=colors.black, borderWidth=1, backColor=colors.whitesmoke, borderPadding=(5,5,5,5), leftIndent=0,
+    ) 
+    # student_signature = Paragraph(f'<img src="{image_path}" width="50" height="50"/> Assinado digitalmente por fulano de tal em 01/01/2021 às 12:00:00', signature_style)
+    student_signature = Paragraph(f'Assinado digitalmente por fulano de tal em 01/01/2021 às 12:00:00', signature_style)
+    coordinator_signature = Paragraph(f'Assinado digitalmente por fulano de tal em 01/01/2021 às 12:00:00', signature_style)
+    table_student_signature = Table([[student_signature]], 200)  # Set the maximum width to 200
+
+    #TODO: GERAR QR CODE IMAGEM TEMPORARIAMENTE
+    # E INSERIR INLINE NO PDF
     
     # Create a table for signatures
     signature_data = [
+        [table_student_signature, table_student_signature],
         ["_" * 30, "_" * 30],
         [bolsista, "Vagner Schoaba"],
         ["Bolsista", "Coordenador"], 
@@ -182,7 +222,7 @@ def generate_pdf(header_data, row_data):
     elements.append(signature_table)  # Add the signature table to the document
 
     # Build the PDF document
-    doc.build(elements)
+    doc.build(elements, onLaterPages=_header_footer)
     pdf_file = buffer.getvalue()
     buffer.close()
     return pdf_file

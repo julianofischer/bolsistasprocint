@@ -1,4 +1,5 @@
 from typing import Any, Dict
+from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import AuthenticationForm
 from django.db.models.query import QuerySet
 from django.forms.forms import BaseForm
@@ -69,7 +70,6 @@ class UserReportsListView(LoginRequiredMixin, ListView):
 
         # Query all reports related to the user
         return Report.objects.filter(user=user).order_by("-ref_month")
-
 
 class ReportEntriesListView(LoginRequiredMixin, ListView):
     model = ReportEntry
@@ -291,7 +291,8 @@ class PDFView(View):
             ],
         )
 
-        if existing_submissions.exists():
+        # se relatório está assinado, será possível imprimir
+        if existing_submissions.exists() and not report.is_signed:
             messages.error(
                 request, "Não é possível imprimir relatório enviado para análise."
             )
@@ -433,3 +434,18 @@ def register_view(request):
     else:
         form = CustomUserCreationForm()
     return render(request, "reports/register.html", {"form": form})
+
+
+def report_sign(request, report_id):
+    report = get_object_or_404(Report, id=report_id)
+    if request.method == "POST":
+        try:
+            report.sign(request.user)
+            messages.success(request, "Relatório assinado com sucesso!")
+        except ValidationError as e:
+            messages.error(request, e.message)
+        except Exception as e:
+            messages.error(request, "Erro ao assinar relatório.")
+        finally:
+            return redirect("user-reports")
+    return render(request, "reports/reports_confirm_sign.html", {"report": report})

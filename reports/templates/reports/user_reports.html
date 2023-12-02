@@ -29,6 +29,14 @@
                                 <a href="{% url 'generate_pdf' report.id %}" target="_blank" class="btn btn-secondary">Imprimir</a>
                                 <a href="{% url 'submit_report' report.id %}" class="btn btn-success">Entregar</a>
                             {% endif %}
+                            
+                            {% if report.state == 'Aprovado' and not report.is_signed %}
+                                <a href="{% url 'report_sign' report.id %}" class="btn btn-primary">Assinar</a>
+                            {% endif %}
+
+                            {% if report.is_signed %}
+                                <a href="{% url 'generate_pdf' report.id %}" class="btn btn-primary">Visualizar</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

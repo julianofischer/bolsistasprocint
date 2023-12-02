@@ -13,6 +13,7 @@ from .models import (
     Scholarship,
     Eixo,
     Role,
+    ReportSignature
 )
 
 from django.contrib.admin import AdminSite
@@ -137,6 +138,7 @@ class PendingReportSubmissionAdmin(admin.ModelAdmin):
 admin.site.register(Scholarship)
 admin.site.register(Eixo)
 admin.site.register(Role)
+admin.site.register(ReportSignature)
 
 # Custom admin classes
 admin.site.register(Report, ReportAdmin)

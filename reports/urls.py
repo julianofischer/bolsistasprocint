@@ -13,4 +13,5 @@ urlpatterns = [
     path("<int:report_id>/atividade/adicionar/", views.ReportEntryCreateView.as_view(), name="create_report_entry"),
     path("<int:report_id>/atividade/<int:pk>/editar/", views.ReportEntryUpdateView.as_view(), name="edit_report_entry"),
     path("<int:report_id>/atividade/<int:pk>/excluir/", views.ReportEntryDeleteView.as_view(), name="delete_report_entry"),
+    path("<int:report_id>/assinar", views.report_sign, name="report_sign"),
 ]
