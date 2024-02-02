@@ -292,36 +292,15 @@ class PDFView(View):
         )
 
         # se relatório está assinado, será possível imprimir
-        if existing_submissions.exists() and not report.is_signed:
-            messages.error(
-                request, "Não é possível imprimir relatório enviado para análise."
-            )
-            return redirect(reverse("user-reports"))
-
-        header_data = {}
+        # if existing_submissions.exists() and not report.is_signed:
+        #    messages.error(
+        #        request, "Não é possível imprimir relatório enviado para análise."
+        #    )
+        #    return redirect(reverse("user-reports"))
+        
         report_id = self.kwargs["report_id"]
         report = Report.objects.get(id=report_id)
-
-        header_data["bolsista"] = report.user.name
-        header_data["funcao"] = report.user.role
-        header_data["periodo"] = report.formatted_ref_month()
-        header_data["telefone"] = report.user.phone_number or ""
-        header_data["email"] = report.user.email
-
-        row_data = []
-        entries = ReportEntry.objects.filter(report__id=report_id)
-        for entry in entries:
-            row_data.append(
-                {
-                    "dia": entry.date.day,
-                    "atividade": entry.description,
-                    "inicio": entry.init_hour,
-                    "fim": entry.end_hour,
-                    "ch": entry.hours,
-                }
-            )
-
-        pdf_file = generate_pdf(header_data, row_data)
+        pdf_file = generate_pdf(report)
         response = HttpResponse(content_type="application/pdf")
         filename = f"{report.user.name} - {report.ref_month.strftime('%B')} - {report.ref_month.year}.pdf"
         response["Content-Disposition"] = f'inline; filename="{filename}"'

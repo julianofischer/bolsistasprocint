@@ -31,3 +31,6 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ('email', 'name', 'password1', 'password2')
+
+class ReportSignForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control"}))

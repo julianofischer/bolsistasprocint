@@ -27,7 +27,7 @@
                             {% if report.state == 'Aberto' or report.state == 'Rejeitado' %}
                                 <a href="{% url 'report-entries' report.id %}" class="btn btn-primary">Abrir</a>
                                 <a href="{% url 'generate_pdf' report.id %}" target="_blank" class="btn btn-secondary">Imprimir</a>
-                                <a href="{% url 'submit_report' report.id %}" class="btn btn-success">Entregar</a>
+                                <a href="{% url 'submit_report' report.id %}" class="btn btn-success">Assinar</a>
                             {% endif %}
                             
                             {% if report.state == 'Aprovado' and not report.is_signed %}

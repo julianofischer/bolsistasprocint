@@ -144,3 +144,5 @@ LOGIN_REDIRECT_URL = '/relatorios/'
 DATE_FORMAT = 'd/m/Y'
 DATETIME_FORMAT = 'd/m/Y H:i:s'
 USE_L10N = False
+
+BASE_URL = 'procint.upscrum.com.br'

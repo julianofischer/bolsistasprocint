@@ -107,12 +107,13 @@ class Report(models.Model):
         "reports.CustomUser", related_name="reports", on_delete=models.CASCADE
     )
     
+    @property
     def signed(self):
         return self.signatures.exists()
     
     @property
     def is_signed(self):
-        return self.signed()
+        return self.signed
 
     def signed_by_user(self):
         return self.signatures.filter(user=self.user).exists()
@@ -143,12 +144,11 @@ class Report(models.Model):
         return f"{self.user} - {self.formatted_ref_month()} ({self.total_hours})"
     
     # only save if it is opened
-    def save(self, *args, **kwargs):
+    # def save(self, *args, **kwargs):
         # 'Report' instance needs to have a primary key value before this relationship can be used.
-        print(self.pk)
-        if not self.pk or not self.signed():
-            super().save(*args, **kwargs)
-        raise ValidationError("Relatório está assinado e não pode ser alterado")
+        # if not self.signed():
+            # super().save(*args, **kwargs)
+        # raise ValidationError("Relatório está assinado e não pode ser alterado")
     
     def sign(self, user):
         if user==self.user and self.signed_by_user():
@@ -188,10 +188,10 @@ class ReportEntry(models.Model):
         return f"{self.report.user} - {self.date} ({self.hours})"
     
     # only save if it is opened
-    def save(self, *args, **kwargs):
-        if not self.report.signed:
-            super().save(*args, **kwargs)
-        raise ValidationError("Relatório está assinado e não pode ser alterado")
+    # def save(self, *args, **kwargs):
+    #     if not self.report.signed:
+    #         super().save(*args, **kwargs)
+    #     raise ValidationError("Relatório está assinado e não pode ser alterado")
 
 
 class ReportSubmission(models.Model):
@@ -203,6 +203,7 @@ class ReportSubmission(models.Model):
         PENDING = "Em análise"
         APPROVED = "Aprovado"
         REJECTED = "Rejeitado"
+        SIGNED = "Assinado"
 
     report = models.ForeignKey(
         Report, on_delete=models.CASCADE, related_name="submissions"
